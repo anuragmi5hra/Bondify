@@ -1,0 +1,54 @@
+body {
+margin: 0;
+font-family: Arial, sans-serif;
+background: #f5f6fa;
+}
+
+
+.navbar {
+display: flex;
+justify-content: space-between;
+padding: 5px 40px;
+background: #111;
+color: white;
+}
+
+
+button {
+padding: 10px 15px;
+border: none;
+border-radius: 8px;
+cursor: pointer;
+display: inline-block;
+}
+.center-card {
+margin: 80px auto;
+width: 300px;
+display: flex;
+flex-direction: column;
+gap: 12px;
+}
+
+
+.profile-layout, .dashboard {
+display: flex;
+padding: 40px;
+gap: 40px;
+}
+
+
+.grid-3 {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 20px;
+padding: 40px;
+}
+.circle {
+border-radius: 50%;
+}
+img.navbar-logo {
+display: flex;
+gap: 20px;
+width: 80px;
+height: 80px;
+}
