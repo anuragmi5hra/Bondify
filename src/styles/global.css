@@ -1,7 +1,7 @@
 body {
 margin: 0;
 font-family: Arial, sans-serif;
-background: #f5f6fa;
+background: #1b9ce195;
 }
 
 
@@ -52,3 +52,20 @@ gap: 20px;
 width: 80px;
 height: 80px;
 }
+/* button-1 {
+background: #1b9ce195;
+color: white;
+padding-right: 10px;
+justify-content: center;
+padding: 20px;
+display: flex;
+gap: 20px;
+}
+button-2 {
+background: #1b9ce195;
+color: white;
+padding-right: 10px;
+justify-content: center;
+padding: 20px;
+display: flex;
+} */
