@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import logo from "../assets/images/logo.png";  // adjust path if needed
-// import button1 from "../styles/global.css";  // adjust path if needed
+import logo from "../assets/images/logo.png";  
+
 export default function Navbar() {
   return (
     <nav className="navbar">
