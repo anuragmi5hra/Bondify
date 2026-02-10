@@ -1,29 +1,38 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // 🔐 LOGIN FUNCTION (HERE 👇)
+  // 🔐 LOGIN
   const login = async () => {
-    try {
-      const res = await fetch(
-        "http://localhost:5000/api/auth/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        }
-      );
+    if (!email || !password) {
+      alert("Please enter email and password");
+      return;
+    }
 
-      if (!res.ok) {
-        alert("Login failed");
-        return;
-      }
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
 
       const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Login failed");
+        return;
+      }
 
       // save token
       localStorage.setItem("token", data.token);
@@ -31,50 +40,72 @@ export default function Auth() {
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
-      alert("Server error");
+      alert("Backend not reachable");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 📝 SIGNUP FUNCTION
+  // 📝 SIGNUP
   const signup = async () => {
+    if (!email || !password) {
+      alert("Please enter email and password");
+      return;
+    }
+
     try {
-      const res = await fetch(
-        "http://localhost:5000/api/auth/signup",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        }
-      );
+      setLoading(true);
+
+      const res = await fetch(`${API_URL}/api/auth/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
 
       if (!res.ok) {
-        alert("Signup failed");
+        alert(data.message || "Signup failed");
         return;
       }
 
+      alert("Signup successful 🎉");
       navigate("/create-profile");
     } catch (err) {
       console.error(err);
-      alert("Server error");
+      alert("Backend not reachable");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="center-card">
+      <h2>Auth</h2>
+
       <input
         type="email"
         placeholder="Email"
+        value={email}
         onChange={(e) => setEmail(e.target.value)}
       />
 
       <input
         type="password"
         placeholder="Password"
+        value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
 
-      <button onClick={login}>Login</button>
-      <button onClick={signup}>Signup</button>
+      <button onClick={login} disabled={loading}>
+        {loading ? "Logging in..." : "Login"}
+      </button>
+
+      <button onClick={signup} disabled={loading}>
+        {loading ? "Signing up..." : "Signup"}
+      </button>
     </div>
   );
 }
