@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import authRoutes from "./routes/auth.js";
+import profileRoutes from "./routes/profile.js";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 
 mongoose
@@ -33,7 +35,7 @@ app.get("/", (req, res) => {
 
 
 app.use("/api/auth", authRoutes);
-
+app.use("/api/profile", profileRoutes);
 
 app.use((err, req, res, next) => {
   console.error("❌ Server Error:", err.stack);
