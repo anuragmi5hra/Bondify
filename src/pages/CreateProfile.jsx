@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function CreateProfile() {
   const navigate = useNavigate();
@@ -11,8 +11,9 @@ export default function CreateProfile() {
   const [bio, setBio] = useState("");
   const [dob, setDob] = useState("");
   const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const fileInputRef = useRef();
+  const fileInputRef = useRef(null);
 
   // 📸 Open file manager
   const handlePhotoClick = () => {
@@ -24,7 +25,6 @@ export default function CreateProfile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Show preview
     setPreview(URL.createObjectURL(file));
 
     const formData = new FormData();
@@ -33,13 +33,18 @@ export default function CreateProfile() {
     const token = localStorage.getItem("token");
 
     try {
-      await fetch(`${API_URL}/api/profile/photo`, {
+      const res = await fetch(`${API_URL}/api/profile/photo`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
         },
         body: formData
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.message || "Image upload failed");
+      }
     } catch (err) {
       console.error(err);
       alert("Image upload failed");
@@ -48,32 +53,50 @@ export default function CreateProfile() {
 
   // 💾 Save profile info
   const handleCreateProfile = async () => {
-    if (!username) {
+    if (!username.trim()) {
       alert("Username is required");
       return;
     }
 
     const token = localStorage.getItem("token");
 
+    if (!token) {
+      alert("User not authenticated");
+      return;
+    }
+
     try {
+      setLoading(true);
+
       const res = await fetch(`${API_URL}/api/profile/me`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ username, bio, dob })
+        body: JSON.stringify({
+          username,
+          bio,
+          dob
+        })
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        alert("Profile save failed");
+        console.error("Backend error:", data);
+        alert(data.message || "Profile save failed");
         return;
       }
 
+      alert("Profile created successfully 🎉");
       navigate("/dashboard");
+
     } catch (err) {
-      console.error(err);
+      console.error("Server error:", err);
       alert("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,7 +111,6 @@ export default function CreateProfile() {
             Set Profile Picture
           </button>
 
-          {/* Hidden file input */}
           <input
             type="file"
             accept="image/*"
@@ -97,7 +119,6 @@ export default function CreateProfile() {
             onChange={handleFileChange}
           />
 
-          {/* Preview Image */}
           {preview && (
             <img
               src={preview}
@@ -133,8 +154,8 @@ export default function CreateProfile() {
             onChange={(e) => setDob(e.target.value)}
           />
 
-          <button onClick={handleCreateProfile}>
-            Create Profile
+          <button onClick={handleCreateProfile} disabled={loading}>
+            {loading ? "Saving..." : "Create Profile"}
           </button>
         </div>
       </div>
