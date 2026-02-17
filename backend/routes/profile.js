@@ -22,7 +22,6 @@ const upload = multer({ storage });
 
 /* ==============================
    📸 UPLOAD PROFILE PHOTO
-   POST /api/profile/photo
 ============================== */
 
 router.post(
@@ -54,7 +53,6 @@ router.post(
 
 /* ==============================
    💾 SAVE PROFILE INFO
-   POST /api/profile/me
 ============================== */
 
 router.post("/me", authMiddleware, async (req, res) => {
@@ -83,19 +81,78 @@ router.post("/me", authMiddleware, async (req, res) => {
 });
 
 /* ==============================
-   📥 GET PROFILE
-   GET /api/profile/me
+   📥 GET MY PROFILE
 ============================== */
 
 router.get("/me", authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const user = await User.findById(req.user.id)
+      .select("-password")
+      .populate("bonds.user", "username profilePic");
 
     res.json(user);
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* ==============================
+   👥 GET ALL USERS (EXCEPT ME)
+============================== */
+
+router.get("/all", authMiddleware, async (req, res) => {
+  try {
+    const users = await User.find({
+      _id: { $ne: req.user.id }
+    }).select("username profilePic");
+
+    res.json(users);
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* ==============================
+   🤝 FOLLOW USER WITH BOND TYPE
+============================== */
+
+router.post("/follow/:id", authMiddleware, async (req, res) => {
+  try {
+    const { bondType } = req.body;
+    const targetUserId = req.params.id;
+
+    if (!["friend", "couple", "charity"].includes(bondType)) {
+      return res.status(400).json({ message: "Invalid bond type" });
+    }
+
+    const user = await User.findById(req.user.id);
+
+    // ❌ prevent self-follow
+    if (user._id.toString() === targetUserId) {
+      return res.status(400).json({ message: "Cannot follow yourself" });
+    }
+
+    // ❌ prevent duplicate follow
+    const alreadyBonded = user.bonds.find(
+      bond => bond.user.toString() === targetUserId
+    );
+
+    if (alreadyBonded) {
+      return res.status(400).json({ message: "Already followed" });
+    }
+
+    user.bonds.push({
+      user: targetUserId,
+      bondType
+    });
+
+    await user.save();
+
+    res.json({ message: "Followed successfully" });
 
   } catch (err) {
     console.log(err);

@@ -7,17 +7,76 @@ import BondSummary from "./pages/BondSummary";
 import Charity from "./pages/Charity";
 import EditProfile from "./pages/EditProfile";
 import SendPoints from "./pages/SendPoints";
+import CreateBonds from "./pages/CreateBonds";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Auth />} />
-      <Route path="/create-profile" element={<CreateProfile />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/bonds" element={<BondSummary />} />
-      <Route path="/charity" element={<Charity />} />
-      <Route path="/edit-profile" element={<EditProfile />} />
-      <Route path="/send" element={<SendPoints />} />
+
+      <Route
+        path="/create-profile"
+        element={
+          <ProtectedRoute>
+            <CreateProfile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/create-bonds"
+        element={
+          <ProtectedRoute>
+            <CreateBonds />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/bonds"
+        element={
+          <ProtectedRoute>
+            <BondSummary />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/charity"
+        element={
+          <ProtectedRoute>
+            <Charity />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/edit-profile"
+        element={
+          <ProtectedRoute>
+            <EditProfile />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/send"
+        element={
+          <ProtectedRoute>
+            <SendPoints />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
