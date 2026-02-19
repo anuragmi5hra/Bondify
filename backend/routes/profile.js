@@ -31,10 +31,7 @@ router.post(
   async (req, res) => {
     try {
       const user = await User.findById(req.user.id);
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+      if (!user) return res.status(404).json({ message: "User not found" });
 
       user.profilePic = req.file.filename;
       await user.save();
@@ -65,9 +62,7 @@ router.post("/me", authMiddleware, async (req, res) => {
       { new: true }
     ).select("-password");
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json({
       message: "Profile updated successfully",
@@ -106,12 +101,14 @@ router.get("/all", authMiddleware, async (req, res) => {
   try {
     const users = await User.find({
       _id: { $ne: req.user.id }
-    }).select("username profilePic");
+    })
+      .select("username profilePic")   // select only needed fields
+      .lean();                        // 🔥 VERY IMPORTANT
 
     res.json(users);
 
   } catch (err) {
-    console.log(err);
+    console.log("ALL USERS ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -129,15 +126,20 @@ router.post("/follow/:id", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Invalid bond type" });
     }
 
-    const user = await User.findById(req.user.id);
+    const currentUser = await User.findById(req.user.id);
+    const targetUser = await User.findById(targetUserId);
+
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     // ❌ prevent self-follow
-    if (user._id.toString() === targetUserId) {
+    if (currentUser._id.toString() === targetUserId) {
       return res.status(400).json({ message: "Cannot follow yourself" });
     }
 
     // ❌ prevent duplicate follow
-    const alreadyBonded = user.bonds.find(
+    const alreadyBonded = currentUser.bonds.find(
       bond => bond.user.toString() === targetUserId
     );
 
@@ -145,14 +147,44 @@ router.post("/follow/:id", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "Already followed" });
     }
 
-    user.bonds.push({
+    // ✅ Add bond to current user
+    currentUser.bonds.push({
       user: targetUserId,
       bondType
     });
 
-    await user.save();
+    await currentUser.save();
 
     res.json({ message: "Followed successfully" });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* ==============================
+   ❌ UNFOLLOW USER
+============================== */
+
+router.delete("/unfollow/:id", authMiddleware, async (req, res) => {
+  try {
+    const targetUserId = req.params.id;
+
+    const currentUser = await User.findById(req.user.id);
+
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Remove bond
+    currentUser.bonds = currentUser.bonds.filter(
+      bond => bond.user.toString() !== targetUserId
+    );
+
+    await currentUser.save();
+
+    res.json({ message: "Unfollowed successfully" });
 
   } catch (err) {
     console.log(err);

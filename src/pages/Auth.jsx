@@ -34,7 +34,7 @@ export default function Auth() {
       if (!res.ok) return alert(data.message || "Login failed");
 
       localStorage.setItem("token", data.token);
-      navigate("/create-bonds");
+      navigate("/dashboard");
     } catch {
       alert("Backend not reachable");
     } finally {

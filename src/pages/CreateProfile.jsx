@@ -90,7 +90,7 @@ export default function CreateProfile() {
       }
 
       alert("Profile created successfully 🎉");
-      navigate("/dashboard");
+      navigate("/create-bonds");
 
     } catch (err) {
       console.error("Server error:", err);
