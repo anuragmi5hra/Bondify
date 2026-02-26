@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
@@ -6,6 +6,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function CreateProfile() {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
@@ -13,24 +14,45 @@ export default function CreateProfile() {
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fileInputRef = useRef(null);
+  /* =========================
+     🔐 CHECK LOGIN
+  ========================= */
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    console.log("TOKEN ON LOAD:", token); // 🔥 DEBUG
 
-  // 📸 Open file manager
+    if (!token) {
+      alert("Please login first");
+      navigate("/");
+    }
+  }, [navigate]);
+
+  /* =========================
+     📸 OPEN FILE PICKER
+  ========================= */
   const handlePhotoClick = () => {
     fileInputRef.current.click();
   };
 
-  // 📸 Handle image selection
+  /* =========================
+     📸 UPLOAD PHOTO
+  ========================= */
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Session expired. Please login again.");
+      navigate("/");
+      return;
+    }
 
     setPreview(URL.createObjectURL(file));
 
     const formData = new FormData();
     formData.append("profilePic", file);
-
-    const token = localStorage.getItem("token");
 
     try {
       const res = await fetch(`${API_URL}/api/profile/photo`, {
@@ -41,17 +63,24 @@ export default function CreateProfile() {
         body: formData
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const data = await res.json();
         alert(data.message || "Image upload failed");
+        return;
       }
+
+      console.log("Photo upload success:", data);
+
     } catch (err) {
       console.error(err);
       alert("Image upload failed");
     }
   };
 
-  // 💾 Save profile info
+  /* =========================
+     💾 SAVE PROFILE
+  ========================= */
   const handleCreateProfile = async () => {
     if (!username.trim()) {
       alert("Username is required");
@@ -61,7 +90,8 @@ export default function CreateProfile() {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      alert("User not authenticated");
+      alert("Session expired. Please login again.");
+      navigate("/");
       return;
     }
 
@@ -74,26 +104,23 @@ export default function CreateProfile() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
-          username,
-          bio,
-          dob
-        })
+        body: JSON.stringify({ username, bio, dob })
       });
 
       const data = await res.json();
 
+      console.log("PROFILE SAVE RESPONSE:", data); // 🔥 DEBUG
+
       if (!res.ok) {
-        console.error("Backend error:", data);
         alert(data.message || "Profile save failed");
         return;
       }
 
       alert("Profile created successfully 🎉");
-      navigate("/create-bonds");
+      navigate("/dashboard");
 
     } catch (err) {
-      console.error("Server error:", err);
+      console.error(err);
       alert("Server error");
     } finally {
       setLoading(false);
@@ -105,7 +132,6 @@ export default function CreateProfile() {
       <Navbar />
 
       <div className="profile-layout">
-        {/* LEFT SIDE */}
         <div className="left">
           <button onClick={handlePhotoClick}>
             Set Profile Picture
@@ -134,7 +160,6 @@ export default function CreateProfile() {
           )}
         </div>
 
-        {/* RIGHT SIDE */}
         <div className="right">
           <input
             placeholder="Username"

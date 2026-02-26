@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 /* ==============================
-   🤝 BOND SCHEMA
+   🤝 BOND SCHEMA (Separate Model)
 ============================== */
 
 const bondSchema = new mongoose.Schema(
@@ -19,6 +19,9 @@ const bondSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Optional: export Bond model if needed elsewhere
+export const Bond = mongoose.model("Bond", bondSchema);
 
 /* ==============================
    👤 USER SCHEMA
@@ -58,37 +61,43 @@ const userSchema = new mongoose.Schema(
       default: ""
     },
 
-    // 🔥 Bond-based following system
-    bonds: [bondSchema]
+    // 🔥 Bond references
+    bonds: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Bond"
+        }
+      ],
+      default: []
+    }
   },
   { timestamps: true }
 );
 
 /* ==============================
-   🚀 INDEX FOR PERFORMANCE
+   📊 SAFE VIRTUAL FIELD
 ============================== */
 
-// Prevent duplicate bonding to same user
-userSchema.index(
-  { _id: 1, "bonds.user": 1 },
-  { unique: false }
-);
-
 /* ==============================
-   📊 VIRTUAL FIELD (OPTIONAL)
+   📊 SAFE VIRTUAL FIELD
 ============================== */
 
-// Count how many people current user bonded with
-userSchema.virtual("totalBonds").get(function () {
-  return this.bonds.length;
-});
+// userSchema.virtual("totalBonds").get(function () {
+//   if (!this.bonds || !Array.isArray(this.bonds)) {
+//     return 0;
+//   }
+//   return this.bonds.length;
+// });
+// /* ==============================
+//    ⚙️ JSON SETTINGS
+// ============================== */
 
-// Allow virtual fields in JSON
-userSchema.set("toJSON", { virtuals: true });
-userSchema.set("toObject", { virtuals: true });
+// userSchema.set("toJSON", { virtuals: true });
+// userSchema.set("toObject", { virtuals: true });
 
 /* ==============================
-   📦 EXPORT MODEL
+   📦 EXPORT USER MODEL
 ============================== */
 
 const User = mongoose.model("User", userSchema);

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -11,11 +11,22 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const users = JSON.parse(localStorage.getItem("savedUsers")) || [];
-    setSavedEmails(users);
-  }, []);
+  /* =========================
+     🔐 AUTO REDIRECT IF LOGGED IN
+  ========================= */
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   if (token) {
+  //     navigate("/dashboard");
+  //   }
 
+  //   const users = JSON.parse(localStorage.getItem("savedUsers")) || [];
+  //   setSavedEmails(users);
+  // }, [navigate]);
+
+  /* =========================
+     ✅ LOGIN
+  ========================= */
   const login = async () => {
     if (!email || !password) {
       alert("Please enter email and password");
@@ -24,24 +35,47 @@ export default function Auth() {
 
     try {
       setLoading(true);
+
+      // remove old token just in case
+      localStorage.removeItem("token");
+
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
-      if (!res.ok) return alert(data.message || "Login failed");
+      console.log("LOGIN RESPONSE:", data);
 
+      if (!res.ok) {
+        alert(data.message || "Login failed");
+        return;
+      }
+
+      if (!data.token) {
+        alert("Token not received from backend!");
+        return;
+      }
+
+      // ✅ STORE TOKEN
       localStorage.setItem("token", data.token);
+
+      console.log("TOKEN STORED:", localStorage.getItem("token"));
+
       navigate("/dashboard");
-    } catch {
+
+    } catch (err) {
+      console.error(err);
       alert("Backend not reachable");
     } finally {
       setLoading(false);
     }
   };
 
+  /* =========================
+     ✅ SIGNUP
+  ========================= */
   const signup = async () => {
     if (!email || !password) {
       alert("Please enter email and password");
@@ -50,15 +84,30 @@ export default function Auth() {
 
     try {
       setLoading(true);
+
       const res = await fetch(`${API_URL}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
-      if (!res.ok) return alert(data.message || "Signup failed");
+      console.log("SIGNUP RESPONSE:", data);
 
+      if (!res.ok) {
+        alert(data.message || "Signup failed");
+        return;
+      }
+
+      if (!data.token) {
+        alert("Token not received from backend!");
+        return;
+      }
+
+      // ✅ STORE TOKEN
+      localStorage.setItem("token", data.token);
+
+      // Save email locally
       const users = JSON.parse(localStorage.getItem("savedUsers")) || [];
       if (!users.includes(email)) {
         users.push(email);
@@ -66,8 +115,11 @@ export default function Auth() {
       }
 
       alert("Signup successful 🎉");
+
       navigate("/create-profile");
-    } catch {
+
+    } catch (err) {
+      console.error(err);
       alert("Backend not reachable");
     } finally {
       setLoading(false);
@@ -81,7 +133,6 @@ export default function Auth() {
       <div className="center-card">
         <h2>Login / Signup</h2>
 
-        {/* ✅ EMAIL DROPDOWN */}
         <input
           list="emails"
           type="email"

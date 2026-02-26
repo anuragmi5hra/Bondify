@@ -1,71 +1,82 @@
 body {
-margin: 0;
-font-family: Arial, sans-serif;
-background: #1b9ce195;
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  color: #333;
+  line-height: 1.6;
 }
 
-
+/* Modern Navbar with Blur Effect */
 .navbar {
-display: flex;
-justify-content: space-between;
-padding: 5px 40px;
-background: #111;
-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 60px;
+  background: rgba(17, 17, 17, 0.95);
+  backdrop-filter: blur(10px);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-
-button {
-padding: 10px 15px;
-border: none;
-border-radius: 8px;
-cursor: pointer;
-display: inline-block;
+.navbar-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 8px;
 }
+
+/* Polished Buttons */
+button, .btn-primary {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background: #1b9ce2;
+  color: white;
+  box-shadow: 0 2px 5px rgba(27, 156, 226, 0.3);
+}
+
+button:hover {
+  background: #1585c2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(27, 156, 226, 0.4);
+}
+
+/* Glassmorphism Card Style */
 .center-card {
-margin: 80px auto;
-width: 300px;
-display: flex;
-flex-direction: column;
-gap: 12px;
+  margin: 60px auto;
+  width: 350px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
 
-
+/* Layouts */
 .profile-layout, .dashboard {
-display: flex;
-padding: 40px;
-gap: 40px;
+  display: flex;
+  padding: 40px;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
-
 
 .grid-3 {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 20px;
-padding: 40px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  padding: 40px;
 }
+
 .circle {
-border-radius: 50%;
+  border-radius: 50%;
+  border: 3px solid #1b9ce2;
 }
-img.navbar-logo {
-display: flex;
-gap: 20px;
-width: 80px;
-height: 80px;
-}
-/* button-1 {
-background: #1b9ce195;
-color: white;
-padding-right: 10px;
-justify-content: center;
-padding: 20px;
-display: flex;
-gap: 20px;
-}
-button-2 {
-background: #1b9ce195;
-color: white;
-padding-right: 10px;
-justify-content: center;
-padding: 20px;
-display: flex;
-} */

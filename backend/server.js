@@ -9,16 +9,23 @@ dotenv.config();
 
 const app = express();
 
+/* ==============================
+   🌍 MIDDLEWARE
+============================== */
+
 app.use(
   cors({
-    origin: "http://localhost:5173", 
-    credentials: true
+    origin: "http://localhost:5173",
+    credentials: true,
   })
 );
 
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
+/* ==============================
+   🗄️ DATABASE CONNECTION
+============================== */
 
 mongoose
   .connect(process.env.MONGO_URI)
@@ -28,22 +35,32 @@ mongoose
     process.exit(1);
   });
 
+/* ==============================
+   🚀 ROUTES
+============================== */
 
 app.get("/", (req, res) => {
   res.send("Bondify backend is running 🚀");
 });
 
-
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
+
+/* ==============================
+   ❌ ERROR HANDLER
+============================== */
 
 app.use((err, req, res, next) => {
   console.error("❌ Server Error:", err.stack);
   res.status(500).json({ message: "Internal Server Error" });
 });
 
+/* ==============================
+   🔥 START SERVER
+============================== */
 
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

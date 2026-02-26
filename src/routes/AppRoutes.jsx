@@ -9,6 +9,7 @@ import Dashboard from "../pages/Dashboard";
 import BondSummary from "../pages/BondSummary";
 import CharityPage from "../pages/Charity";
 import SendPoints from "../pages/SendPoints";
+import EditProfile from "../pages/EditProfile";
 
 const AppRoutes = () => {
   return (
@@ -20,6 +21,7 @@ const AppRoutes = () => {
       <Route path="/bond-summary" element={<BondSummary />} />
       <Route path="/charity" element={<CharityPage />} />
       <Route path="/send-points" element={<SendPoints />} />
+      <Route path="/edit-profile" element={<EditProfile />} />
       <Route path="/edit-profile" element={<EditProfile />} />
     </Routes>
   );
