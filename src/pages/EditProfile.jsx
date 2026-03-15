@@ -1,55 +1,48 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = "http://localhost:5000";
 
 export default function EditProfile() {
-  const navigate = useNavigate();
-
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [dob, setDob] = useState("");
+  const [profilePic, setProfilePic] = useState(null);
+  const [preview, setPreview] = useState("");
 
   const token = localStorage.getItem("token");
 
-  // 🔥 Redirect if no token
-  useEffect(() => {
-    if (!token) {
-      navigate("/");
-    }
-  }, [token, navigate]);
-
-  // 🔥 Fetch existing profile
+  /* =========================
+     GET PROFILE
+  ========================= */
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(
-          `${API_URL}/api/profile/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const res = await axios.get(`${API_URL}/api/profile/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         setUsername(res.data.username || "");
         setBio(res.data.bio || "");
+        setDob(res.data.dob || "");
 
-        // Fix date format for input type="date"
-        if (res.data.dob) {
-          setDob(res.data.dob.substring(0, 10));
+        if (res.data.profilePic) {
+          setPreview(`${API_URL}/uploads/${res.data.profilePic}`);
         }
 
       } catch (err) {
-        console.error(err.response?.data || err.message);
+        console.log(err);
       }
     };
 
     fetchProfile();
-  }, [token]);
+  }, []);
 
-  // 🔥 Update profile
+  /* =========================
+     UPDATE PROFILE
+  ========================= */
   const handleUpdate = async (e) => {
     e.preventDefault();
 
@@ -64,14 +57,44 @@ export default function EditProfile() {
         }
       );
 
-      alert("Profile Updated Successfully ✅");
-
-      // Redirect back to dashboard
-      navigate("/dashboard");
+      alert("Profile updated successfully ✅");
 
     } catch (err) {
-      console.error(err.response?.data || err.message);
-      alert("Update Failed ❌");
+      console.log(err);
+      alert("Update failed ❌");
+    }
+  };
+
+  /* =========================
+     UPLOAD PROFILE PHOTO
+  ========================= */
+  const handlePhotoUpload = async () => {
+    if (!profilePic) {
+      alert("Please select an image");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("profilePic", profilePic);
+
+    try {
+      const res = await axios.post(
+        `${API_URL}/api/profile/photo`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("Photo updated successfully 📸");
+
+      setPreview(`${API_URL}/uploads/${res.data.profilePic}`);
+
+    } catch (err) {
+      console.log(err);
+      alert("Photo upload failed");
     }
   };
 
@@ -79,6 +102,37 @@ export default function EditProfile() {
     <div style={{ padding: "40px" }}>
       <h2>Edit Profile</h2>
 
+      {/* PROFILE PHOTO */}
+      {preview && (
+        <img
+          src={preview}
+          alt="Profile"
+          style={{
+            width: "120px",
+            height: "120px",
+            borderRadius: "50%",
+            objectFit: "cover",
+            marginBottom: "20px"
+          }}
+        />
+      )}
+
+      <br />
+
+      <input
+        type="file"
+        onChange={(e) => setProfilePic(e.target.files[0])}
+      />
+
+      <br /><br />
+
+      <button onClick={handlePhotoUpload}>
+        Update Profile Photo
+      </button>
+
+      <hr style={{ margin: "30px 0" }} />
+
+      {/* PROFILE INFO FORM */}
       <form onSubmit={handleUpdate}>
         <input
           type="text"
@@ -86,6 +140,7 @@ export default function EditProfile() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
+
         <br /><br />
 
         <input
@@ -94,6 +149,7 @@ export default function EditProfile() {
           value={bio}
           onChange={(e) => setBio(e.target.value)}
         />
+
         <br /><br />
 
         <input
@@ -101,9 +157,12 @@ export default function EditProfile() {
           value={dob}
           onChange={(e) => setDob(e.target.value)}
         />
+
         <br /><br />
 
-        <button type="submit">Update Profile</button>
+        <button type="submit">
+          Update Profile
+        </button>
       </form>
     </div>
   );

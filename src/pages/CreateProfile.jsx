@@ -99,7 +99,7 @@ export default function CreateProfile() {
       setLoading(true);
 
       const res = await fetch(`${API_URL}/api/profile/me`, {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`

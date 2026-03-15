@@ -12,17 +12,12 @@ export default function Auth() {
   const navigate = useNavigate();
 
   /* =========================
-     🔐 AUTO REDIRECT IF LOGGED IN
+     LOAD SAVED EMAILS
   ========================= */
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
-  //   if (token) {
-  //     navigate("/dashboard");
-  //   }
-
-  //   const users = JSON.parse(localStorage.getItem("savedUsers")) || [];
-  //   setSavedEmails(users);
-  // }, [navigate]);
+  useEffect(() => {
+    const storedEmails = JSON.parse(localStorage.getItem("savedUsers")) || [];
+    setSavedEmails(storedEmails);
+  }, []);
 
   /* =========================
      ✅ LOGIN
@@ -36,7 +31,6 @@ export default function Auth() {
     try {
       setLoading(true);
 
-      // remove old token just in case
       localStorage.removeItem("token");
 
       const res = await fetch(`${API_URL}/api/auth/login`, {
@@ -58,13 +52,13 @@ export default function Auth() {
         return;
       }
 
-      // ✅ STORE TOKEN
       localStorage.setItem("token", data.token);
 
       console.log("TOKEN STORED:", localStorage.getItem("token"));
 
-      navigate("/dashboard");
+      alert("Logged in successfully 🎉");
 
+      navigate("/dashboard");
     } catch (err) {
       console.error(err);
       alert("Backend not reachable");
@@ -100,26 +94,29 @@ export default function Auth() {
       }
 
       if (!data.token) {
-        alert("Token not received from backend!");
+        console.error("Token missing in response:", data);
+        alert("Authentication error. Please try again.");
         return;
       }
 
       // ✅ STORE TOKEN
       localStorage.setItem("token", data.token);
 
-      // Save email locally
+      // ✅ SAVE EMAIL FOR DROPDOWN
       const users = JSON.parse(localStorage.getItem("savedUsers")) || [];
       if (!users.includes(email)) {
         users.push(email);
         localStorage.setItem("savedUsers", JSON.stringify(users));
       }
 
+      // update dropdown instantly
+      setSavedEmails(users);
+
       alert("Signup successful 🎉");
 
       navigate("/create-profile");
-
     } catch (err) {
-      console.error(err);
+      console.error("Signup error:", err);
       alert("Backend not reachable");
     } finally {
       setLoading(false);
@@ -133,6 +130,7 @@ export default function Auth() {
       <div className="center-card">
         <h2>Login / Signup</h2>
 
+        {/* EMAIL INPUT WITH DROPDOWN */}
         <input
           list="emails"
           type="email"
@@ -140,6 +138,7 @@ export default function Auth() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
+
         <datalist id="emails">
           {savedEmails.map((e, i) => (
             <option key={i} value={e} />

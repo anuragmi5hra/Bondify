@@ -75,30 +75,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-/* ==============================
-   📊 SAFE VIRTUAL FIELD
-============================== */
-
-/* ==============================
-   📊 SAFE VIRTUAL FIELD
-============================== */
-
-// userSchema.virtual("totalBonds").get(function () {
-//   if (!this.bonds || !Array.isArray(this.bonds)) {
-//     return 0;
-//   }
-//   return this.bonds.length;
-// });
-// /* ==============================
-//    ⚙️ JSON SETTINGS
-// ============================== */
-
-// userSchema.set("toJSON", { virtuals: true });
-// userSchema.set("toObject", { virtuals: true });
-
-/* ==============================
-   📦 EXPORT USER MODEL
-============================== */
 
 const User = mongoose.model("User", userSchema);
 
