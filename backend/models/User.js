@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 /* ==============================
-   🤝 BOND SCHEMA (Separate Model)
+   🤝 BOND SCHEMA
 ============================== */
 
 const bondSchema = new mongoose.Schema(
@@ -11,6 +11,7 @@ const bondSchema = new mongoose.Schema(
       ref: "User",
       required: true
     },
+
     bondType: {
       type: String,
       enum: ["friend", "couple", "charity"],
@@ -20,7 +21,6 @@ const bondSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Optional: export Bond model if needed elsewhere
 export const Bond = mongoose.model("Bond", bondSchema);
 
 /* ==============================
@@ -61,20 +61,38 @@ const userSchema = new mongoose.Schema(
       default: ""
     },
 
-    // 🔥 Bond references
-    bonds: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Bond"
-        }
-      ],
-      default: []
+    /* ==============================
+       🔥 BONDS
+    ============================== */
+
+    bonds: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Bond"
+      }
+    ],
+
+    /* ==============================
+       💰 POINTS SYSTEM
+    ============================== */
+
+    points: {
+      type: Number,
+      default: 10 // user starts with 10 points
+    },
+
+    totalReceivedPoints: {
+      type: Number,
+      default: 0
+    },
+
+    lastDailyReward: {
+      type: Date
     }
+
   },
   { timestamps: true }
 );
-
 
 const User = mongoose.model("User", userSchema);
 

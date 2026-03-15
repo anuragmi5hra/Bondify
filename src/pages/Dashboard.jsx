@@ -16,12 +16,31 @@ export default function Dashboard() {
       return;
     }
 
+    const claimDailyPoints = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/points/daily`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        const data = await res.json();
+
+        if (data.message === "Daily 10 points received 🎉") {
+          alert("🎉 You received 10 daily points!");
+        }
+
+      } catch (err) {
+        console.error("Daily points error:", err);
+      }
+    };
+
     const fetchProfile = async () => {
       try {
         const res = await fetch(`${API_URL}/api/profile/me`, {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         });
 
         if (!res.ok) {
@@ -37,8 +56,10 @@ export default function Dashboard() {
       }
     };
 
+    claimDailyPoints();
     fetchProfile();
-  }, [navigate, API_URL]);
+
+  }, [navigate]);
 
   return (
     <>
@@ -46,9 +67,9 @@ export default function Dashboard() {
 
       <div className="dashboard">
 
-        {/* 👤 PROFILE DISPLAY */}
         {profile && (
           <div style={{ textAlign: "center", marginBottom: "20px" }}>
+
             {profile.profilePic && (
               <img
                 src={`${API_URL}/uploads/${profile.profilePic}`}
@@ -61,12 +82,20 @@ export default function Dashboard() {
                 }}
               />
             )}
+
             <h3>{profile.username}</h3>
+
             {profile.bio && <p>{profile.bio}</p>}
+
+            <p style={{ fontWeight: "bold", color: "#2f93c6" }}>
+              💰 Points: {profile.points || 0}
+            </p>
+
           </div>
         )}
 
         <div className="left">
+
           <button onClick={() => navigate("/bonds")}>
             Your Bonds
           </button>
@@ -81,9 +110,11 @@ export default function Dashboard() {
           >
             Create Bonds
           </button>
+
         </div>
 
         <div className="right">
+
           <button
             onClick={() => navigate("/send")}
             className="circle"
@@ -91,14 +122,15 @@ export default function Dashboard() {
             Send
           </button>
 
-          {/* 🔥 EDIT PROFILE BUTTON */}
           <button
             onClick={() => navigate("/edit-profile")}
             className="edit"
           >
             Edit
           </button>
+
         </div>
+
       </div>
     </>
   );
