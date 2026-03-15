@@ -28,7 +28,7 @@ router.post("/signup", async (req, res) => {
       password: hashedPassword,
     });
 
-    // ✅ GENERATE TOKEN HERE (THIS WAS MISSING)
+    // GENERATE TOKEN
     const token = jwt.sign(
       { id: newUser._id },
       process.env.JWT_SECRET,
@@ -91,6 +91,46 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* ==============================
+   FORGOT PASSWORD
+============================== */
+router.post("/forgot-password", async (req, res) => {
+  try {
+
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        message: "Email and new password required"
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found"
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+
+    await user.save();
+
+    res.json({
+      message: "Password updated successfully. You can login now."
+    });
+
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(500).json({
+      message: "Server error"
+    });
   }
 });
 

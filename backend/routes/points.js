@@ -1,6 +1,7 @@
 import express from "express";
 import User from "../models/User.js";
 import authMiddleware from "../middleware/authMiddleware.js";
+import BondTransaction from "../models/BondTransaction.js";   // ⭐ NEW IMPORT
 
 const router = express.Router();
 
@@ -76,6 +77,14 @@ router.post("/send", authMiddleware, async (req, res) => {
 
     await sender.save();
     await receiver.save();
+
+    /* ⭐ SAVE TRANSACTION (NEW) */
+
+    await BondTransaction.create({
+      sender: sender._id,
+      receiver: receiver._id,
+      points: amount
+    });
 
     res.json({
       message: "Points sent successfully ❤️",

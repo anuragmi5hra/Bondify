@@ -7,6 +7,7 @@ import authRoutes from "./routes/auth.js";
 import profileRoutes from "./routes/profile.js";
 import pointsRoutes from "./routes/points.js";
 import notificationRoutes from "./routes/notifications.js";
+import charityRoutes from "./routes/charity.js";
 
 dotenv.config();
 
@@ -47,6 +48,28 @@ app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/points", pointsRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/charity", charityRoutes);
+
+/* ==============================
+   404 HANDLER (IMPORTANT)
+============================== */
+
+app.use((req, res) => {
+  res.status(404).json({
+    message: "Route not found"
+  });
+});
+
+/* ==============================
+   GLOBAL ERROR HANDLER
+============================== */
+
+app.use((err, req, res, next) => {
+  console.error("Server error:", err);
+  res.status(500).json({
+    message: "Internal server error"
+  });
+});
 
 /* ==============================
    SERVER

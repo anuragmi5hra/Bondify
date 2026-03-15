@@ -9,6 +9,10 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [savedEmails, setSavedEmails] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [showForgot, setShowForgot] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+
   const navigate = useNavigate();
 
   /* =========================
@@ -20,7 +24,7 @@ export default function Auth() {
   }, []);
 
   /* =========================
-     ✅ LOGIN
+     LOGIN
   ========================= */
   const login = async () => {
     if (!email || !password) {
@@ -40,21 +44,13 @@ export default function Auth() {
       });
 
       const data = await res.json();
-      console.log("LOGIN RESPONSE:", data);
 
       if (!res.ok) {
         alert(data.message || "Login failed");
         return;
       }
 
-      if (!data.token) {
-        alert("Token not received from backend!");
-        return;
-      }
-
       localStorage.setItem("token", data.token);
-
-      console.log("TOKEN STORED:", localStorage.getItem("token"));
 
       alert("Logged in successfully 🎉");
 
@@ -68,7 +64,7 @@ export default function Auth() {
   };
 
   /* =========================
-     ✅ SIGNUP
+     SIGNUP
   ========================= */
   const signup = async () => {
     if (!email || !password) {
@@ -86,30 +82,20 @@ export default function Auth() {
       });
 
       const data = await res.json();
-      console.log("SIGNUP RESPONSE:", data);
 
       if (!res.ok) {
         alert(data.message || "Signup failed");
         return;
       }
 
-      if (!data.token) {
-        console.error("Token missing in response:", data);
-        alert("Authentication error. Please try again.");
-        return;
-      }
-
-      // ✅ STORE TOKEN
       localStorage.setItem("token", data.token);
 
-      // ✅ SAVE EMAIL FOR DROPDOWN
       const users = JSON.parse(localStorage.getItem("savedUsers")) || [];
       if (!users.includes(email)) {
         users.push(email);
         localStorage.setItem("savedUsers", JSON.stringify(users));
       }
 
-      // update dropdown instantly
       setSavedEmails(users);
 
       alert("Signup successful 🎉");
@@ -123,6 +109,38 @@ export default function Auth() {
     }
   };
 
+  /* =========================
+     FORGOT PASSWORD
+  ========================= */
+  const resetPassword = async () => {
+    if (!email || !newPassword) {
+      alert("Enter email and new password");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, newPassword })
+      });
+
+      const data = await res.json();
+
+      alert(data.message);
+
+      if (res.ok) {
+        setShowForgot(false);
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -130,7 +148,6 @@ export default function Auth() {
       <div className="center-card">
         <h2>Login / Signup</h2>
 
-        {/* EMAIL INPUT WITH DROPDOWN */}
         <input
           list="emails"
           type="email"
@@ -145,20 +162,53 @@ export default function Auth() {
           ))}
         </datalist>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        {!showForgot && (
+          <>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
-        <button onClick={login} disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
+            <button onClick={login} disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
+            </button>
 
-        <button onClick={signup} disabled={loading}>
-          {loading ? "Signing up..." : "Signup"}
-        </button>
+            <button onClick={signup} disabled={loading}>
+              {loading ? "Signing up..." : "Signup"}
+            </button>
+
+            <p
+              style={{ marginTop: "10px", cursor: "pointer", color: "blue" }}
+              onClick={() => setShowForgot(true)}
+            >
+              Forgot Password?
+            </p>
+          </>
+        )}
+
+        {showForgot && (
+          <>
+            <input
+              type="password"
+              placeholder="Enter New Password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+
+            <button onClick={resetPassword}>
+              Reset Password
+            </button>
+
+            <p
+              style={{ cursor: "pointer", color: "blue" }}
+              onClick={() => setShowForgot(false)}
+            >
+              Back to Login
+            </p>
+          </>
+        )}
       </div>
     </>
   );
