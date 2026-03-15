@@ -6,43 +6,57 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 export default function Charity() {
 
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
-  /* =========================
-     FETCH USER CHARITY DATA
-  ========================= */
-  useEffect(() => {
+  const token = localStorage.getItem("token");
 
-    const fetchTransactions = async () => {
-      try {
+  /* =====================
+     FETCH LATEST 10
+  ===================== */
+  const fetchLatest = async () => {
+    try {
 
-        const token = localStorage.getItem("token");
-
-        const res = await fetch(`${API_URL}/api/charity/daily`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          console.error("API error:", data.message);
-          return;
+      const res = await fetch(`${API_URL}/api/charity/daily`,{
+        headers:{
+          Authorization:`Bearer ${token}`
         }
+      });
 
-        setTransactions(data);
+      const data = await res.json();
 
-      } catch (err) {
-        console.error("Error fetching charity data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setTransactions(data);
+      setShowAll(false);
 
-    fetchTransactions();
+    } catch(err){
+      console.error(err);
+    }
+  };
 
-  }, []);
+  /* =====================
+     FETCH FULL HISTORY
+  ===================== */
+  const fetchAll = async () => {
+    try{
+
+      const res = await fetch(`${API_URL}/api/charity/all`,{
+        headers:{
+          Authorization:`Bearer ${token}`
+        }
+      });
+
+      const data = await res.json();
+
+      setTransactions(data);
+      setShowAll(true);
+
+    }catch(err){
+      console.error(err);
+    }
+  };
+
+  useEffect(()=>{
+    fetchLatest();
+  },[]);
 
   return (
     <>
@@ -50,13 +64,11 @@ export default function Charity() {
 
       <div className="center-card">
 
-        <h3>Daily Sent & Received Bond Points</h3>
+        <h3>
+          {showAll ? "All Transaction History" : "Latest 10 Transactions"}
+        </h3>
 
-        {loading ? (
-          <p>Loading transactions...</p>
-        ) : (
-
-        <table style={{ width: "100%", marginTop: "20px" }}>
+        <table style={{ width:"100%", marginTop:"20px" }}>
           <thead>
             <tr>
               <th>Sender</th>
@@ -68,27 +80,43 @@ export default function Charity() {
 
           <tbody>
 
-            {transactions.length === 0 ? (
-              <tr>
-                <td colSpan="4" style={{ textAlign: "center" }}>
-                  No charity transactions today
-                </td>
+          {transactions.length === 0 ? (
+            <tr>
+              <td colSpan="4" style={{textAlign:"center"}}>
+                No transactions found
+              </td>
+            </tr>
+          ) : (
+            transactions.map((t,i)=>(
+              <tr key={i}>
+                <td>{t.sender?.email}</td>
+                <td>{t.receiver?.email}</td>
+                <td>{t.points}</td>
+                <td>{new Date(t.createdAt).toLocaleString()}</td>
               </tr>
-            ) : (
-              transactions.map((t, i) => (
-                <tr key={i}>
-                  <td>{t.sender?.email || "Unknown"}</td>
-                  <td>{t.receiver?.email || "Unknown"}</td>
-                  <td>{t.points}</td>
-                  <td>{new Date(t.createdAt).toLocaleString()}</td>
-                </tr>
-              ))
-            )}
+            ))
+          )}
 
           </tbody>
         </table>
 
-        )}
+        {/* BUTTON SECTION */}
+
+        <div style={{marginTop:"20px"}}>
+
+          {!showAll && (
+            <button onClick={fetchAll}>
+              View All Transactions
+            </button>
+          )}
+
+          {showAll && (
+            <button onClick={fetchLatest}>
+              Back to Recent
+            </button>
+          )}
+
+        </div>
 
       </div>
     </>
