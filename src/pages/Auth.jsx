@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Auth() {
+  const [mode, setMode] = useState("login"); // login | signup
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [savedEmails, setSavedEmails] = useState([]);
@@ -52,8 +53,6 @@ export default function Auth() {
 
       localStorage.setItem("token", data.token);
 
-      alert("Logged in successfully 🎉");
-
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
@@ -97,8 +96,6 @@ export default function Auth() {
       }
 
       setSavedEmails(users);
-
-      alert("Signup successful 🎉");
 
       navigate("/create-profile");
     } catch (err) {
@@ -145,70 +142,135 @@ export default function Auth() {
     <>
       <Navbar />
 
-      <div className="center-card">
-        <h2>Login / Signup</h2>
+      <div className="auth-shell">
+        <div className="card auth-card">
+          <div className="card-header">
+            <div>
+              <h2 className="title" style={{ margin: 0 }}>Welcome to Bondify</h2>
+              <p className="subtle">A clean, secure wallet-style points experience.</p>
+            </div>
+          </div>
 
-        <input
-          list="emails"
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <datalist id="emails">
-          {savedEmails.map((e, i) => (
-            <option key={i} value={e} />
-          ))}
-        </datalist>
-
-        {!showForgot && (
-          <>
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-
-            <button onClick={login} disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
-            </button>
-
-            <button onClick={signup} disabled={loading}>
-              {loading ? "Signing up..." : "Signup"}
-            </button>
-
-            <p
-              style={{ marginTop: "10px", cursor: "pointer", color: "blue" }}
-              onClick={() => setShowForgot(true)}
+          <div className="tabs" aria-label="Auth mode">
+            <button
+              className={`tab ${mode === "login" ? "tab-active" : ""}`}
+              onClick={() => {
+                setMode("login");
+                setShowForgot(false);
+              }}
+              type="button"
             >
-              Forgot Password?
-            </p>
-          </>
-        )}
-
-        {showForgot && (
-          <>
-            <input
-              type="password"
-              placeholder="Enter New Password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-
-            <button onClick={resetPassword}>
-              Reset Password
+              Login
             </button>
-
-            <p
-              style={{ cursor: "pointer", color: "blue" }}
-              onClick={() => setShowForgot(false)}
+            <button
+              className={`tab ${mode === "signup" ? "tab-active" : ""}`}
+              onClick={() => {
+                setMode("signup");
+                setShowForgot(false);
+              }}
+              type="button"
             >
-              Back to Login
-            </p>
-          </>
-        )}
+              Signup
+            </button>
+          </div>
+
+          <div className="field">
+            <div className="label">Email</div>
+            <input
+              className="input"
+              list="emails"
+              type="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+            />
+            <datalist id="emails">
+              {savedEmails.map((e, i) => (
+                <option key={i} value={e} />
+              ))}
+            </datalist>
+          </div>
+
+          {!showForgot && (
+            <>
+              <div className="field">
+                <div className="label">Password</div>
+                <input
+                  className="input"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                />
+              </div>
+
+              <div className="grid" style={{ gap: 10 }}>
+                {mode === "login" ? (
+                  <button className="btn btn-primary" onClick={login} disabled={loading}>
+                    {loading ? "Logging in..." : "Login"}
+                  </button>
+                ) : (
+                  <button className="btn btn-primary" onClick={signup} disabled={loading}>
+                    {loading ? "Creating account..." : "Create account"}
+                  </button>
+                )}
+
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setEmail("");
+                    setPassword("");
+                  }}
+                  type="button"
+                  disabled={loading}
+                >
+                  Clear
+                </button>
+              </div>
+
+              {mode === "login" && (
+                <button
+                  className="btn btn-ghost"
+                  style={{ width: "100%", marginTop: 6 }}
+                  onClick={() => setShowForgot(true)}
+                  type="button"
+                >
+                  Forgot password?
+                </button>
+              )}
+            </>
+          )}
+
+          {showForgot && (
+            <>
+              <div className="field">
+                <div className="label">New password</div>
+                <input
+                  className="input"
+                  type="password"
+                  placeholder="Create a new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+
+              <button className="btn btn-primary" onClick={resetPassword}>
+                Reset password
+              </button>
+
+              <button className="btn btn-ghost" onClick={() => setShowForgot(false)} type="button">
+                Back
+              </button>
+            </>
+          )}
+
+          <div className="divider" />
+          <p className="hint">
+            Tip: your last used emails appear in the picker for faster sign-in.
+          </p>
+        </div>
       </div>
     </>
   );

@@ -7,6 +7,8 @@ export default function Charity() {
 
   const [transactions, setTransactions] = useState([]);
   const [showAll, setShowAll] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
 
@@ -54,70 +56,109 @@ export default function Charity() {
     }
   };
 
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/profile/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setProfile(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(()=>{
-    fetchLatest();
+    Promise.all([fetchProfile(), fetchLatest()]).finally(() => setLoading(false));
   },[]);
+
+  const myId = profile?._id;
+  const classifyTx = (t) => {
+    const senderId = typeof t.sender === "string" ? t.sender : t.sender?._id;
+    return senderId && myId && senderId === myId ? "sent" : "received";
+  };
 
   return (
     <>
-      <Navbar />
+      <Navbar profile={profile} />
 
-      <div className="center-card">
+      <div className="page">
+        <div className="container grid" style={{ gap: 16 }}>
+          <div className="card card-pad">
 
-        <h3>
-          {showAll ? "All Transaction History" : "Latest 10 Transactions"}
-        </h3>
+            <div className="card-header">
+              <div>
+                <h2 className="title">Charity</h2>
+                <p className="subtle">A clean view of your full transaction history.</p>
+              </div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                <button
+                  className={`btn ${showAll ? "btn-secondary" : "btn-primary"}`}
+                  onClick={fetchLatest}
+                  disabled={loading || !showAll}
+                >
+                  Recent (10)
+                </button>
+                <button
+                  className={`btn ${showAll ? "btn-primary" : "btn-secondary"}`}
+                  onClick={fetchAll}
+                  disabled={loading || showAll}
+                >
+                  All history
+                </button>
+              </div>
+            </div>
 
-        <table style={{ width:"100%", marginTop:"20px" }}>
-          <thead>
-            <tr>
-              <th>Sender</th>
-              <th>Receiver</th>
-              <th>Points</th>
-              <th>Date</th>
-            </tr>
-          </thead>
+            <div className="divider" />
 
-          <tbody>
+            <div className="table-wrap">
+              <table className="table" aria-label="Transaction history">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Sender</th>
+                    <th>Receiver</th>
+                    <th>Points</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
 
-          {transactions.length === 0 ? (
-            <tr>
-              <td colSpan="4" style={{textAlign:"center"}}>
-                No transactions found
-              </td>
-            </tr>
-          ) : (
-            transactions.map((t,i)=>(
-              <tr key={i}>
-                <td>{t.sender?.email}</td>
-                <td>{t.receiver?.email}</td>
-                <td>{t.points}</td>
-                <td>{new Date(t.createdAt).toLocaleString()}</td>
-              </tr>
-            ))
-          )}
+                <tbody>
+                  {transactions.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="muted">
+                        {loading ? "Loading..." : "No transactions found"}
+                      </td>
+                    </tr>
+                  ) : (
+                    transactions.map((t, i) => {
+                      const kind = classifyTx(t);
+                      const chipClass = kind === "sent" ? "tx-chip tx-sent" : "tx-chip tx-received";
+                      return (
+                        <tr key={t._id || i}>
+                          <td>
+                            <span className={chipClass}>
+                              <span className="dot" />
+                              {kind === "sent" ? "Sent" : "Received"}
+                            </span>
+                          </td>
+                          <td className="muted">{t.sender?.email || "—"}</td>
+                          <td className="muted">{t.receiver?.email || "—"}</td>
+                          <td style={{ fontWeight: 800, color: kind === "sent" ? "rgba(180, 28, 28, 0.98)" : "rgba(12, 110, 70, 0.98)" }}>
+                            {kind === "sent" ? "-" : "+"}{t.points}
+                          </td>
+                          <td className="muted">{t.createdAt ? new Date(t.createdAt).toLocaleString() : "—"}</td>
+                        </tr>
+                      );
+                    })
+                  )}
 
-          </tbody>
-        </table>
-
-        {/* BUTTON SECTION */}
-
-        <div style={{marginTop:"20px"}}>
-
-          {!showAll && (
-            <button onClick={fetchAll}>
-              View All Transactions
-            </button>
-          )}
-
-          {showAll && (
-            <button onClick={fetchLatest}>
-              Back to Recent
-            </button>
-          )}
-
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-
       </div>
     </>
   );
