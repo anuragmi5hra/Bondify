@@ -540,3 +540,105 @@ table.table tbody tr:hover {
 }
 
 .circle { border-radius: 999px; border: 1px solid rgba(43, 116, 255, 0.22); }
+
+/* =========================
+   Create Bonds - COLUMN (6 per column)
+========================= */
+
+.bond-container {
+  width: min(1200px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+/* =========================
+   6 USERS PER ROW
+========================= */
+
+.bond-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* 👈 6 per row */
+  gap: 16px;
+  margin-top: 20px;
+}
+
+/* Responsive (optional but recommended) */
+@media (max-width: 1100px) {
+  .bond-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .bond-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* User Card */
+.user-card {
+  min-width: 160px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow);
+}
+
+/* Profile Image */
+.user-card img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+  object-fit: cover;
+}
+
+/* Username */
+.user-card span {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* Buttons */
+.user-card button {
+  width: 100%;
+  padding: 8px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.follow-btn {
+  background: linear-gradient(135deg, #12b76a, #0ea35a);
+  color: white;
+}
+
+.unfollow-btn {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+}
+
+/* ✅ Fix oversized image issue */
+.user-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Prevent any image from stretching */
+img {
+  max-width: 100%;
+  height: auto;
+}

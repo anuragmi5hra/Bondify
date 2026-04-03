@@ -19,22 +19,16 @@ export default function CreateBonds() {
   /* =========================
      Protect Page
   ========================= */
-
   useEffect(() => {
-    if (!token) {
-      navigate("/");
-    }
+    if (!token) navigate("/");
   }, [token, navigate]);
 
   /* =========================
      Fetch Logged User
   ========================= */
-
   useEffect(() => {
-
     const fetchProfile = async () => {
       try {
-
         const res = await fetch(`${API_URL}/api/profile/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -45,16 +39,13 @@ export default function CreateBonds() {
         }
 
         const data = await res.json();
-
         setLoggedUser(data);
 
         if (data?.bonds) {
-
           const bonded = data.bonds.map(bond => ({
             userId: bond.user?._id || bond.user,
             bondType: bond.bondType
           }));
-
           setBondedUsers(bonded);
         }
 
@@ -67,18 +58,14 @@ export default function CreateBonds() {
     };
 
     if (token) fetchProfile();
-
   }, [token, navigate]);
 
   /* =========================
      Fetch All Users
   ========================= */
-
   useEffect(() => {
-
     const fetchUsers = async () => {
       try {
-
         const res = await fetch(`${API_URL}/api/profile/all`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -92,26 +79,18 @@ export default function CreateBonds() {
     };
 
     if (token) fetchUsers();
-
   }, [token]);
 
   /* =========================
-     Follow Click
+     Follow
   ========================= */
-
   const handleFollowClick = (userId) => {
     setSelectedUser(userId);
     setShowPopup(true);
   };
 
-  /* =========================
-     Select Bond Type
-  ========================= */
-
   const handleBondSelect = async (type) => {
-
     try {
-
       const res = await fetch(
         `${API_URL}/api/profile/follow/${selectedUser}`,
         {
@@ -135,7 +114,6 @@ export default function CreateBonds() {
       ]);
 
       setShowPopup(false);
-
       alert("Followed successfully ✅");
 
     } catch (err) {
@@ -146,11 +124,8 @@ export default function CreateBonds() {
   /* =========================
      Unfollow
   ========================= */
-
   const handleUnfollow = async (userId) => {
-
     try {
-
       const res = await fetch(
         `${API_URL}/api/profile/unfollow/${userId}`,
         {
@@ -185,103 +160,74 @@ export default function CreateBonds() {
         <h2>Create Your Bonds</h2>
 
         {/* Logged User */}
-        {loggedUser && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "15px",
-              marginBottom: "20px",
-              background: "#f5f5f5",
-              padding: "10px",
-              borderRadius: "10px"
-            }}
-          >
+        {/* <div className="logged-user">
+  <img
+    src={
+      loggedUser.profilePic
+        ? `${API_URL}/uploads/${loggedUser.profilePic}`
+        : "/default-avatar.png"
+    }
+    alt="profile"
+    className="user-img"
+  />
+  <h4>{loggedUser.username || "User"}</h4>
+</div> */}
 
-            <img
-              src={
-                loggedUser.profilePic
-                  ? `${API_URL}/uploads/${loggedUser.profilePic}`
-                  : "/default-avatar.png"
-              }
-              alt="profile"
-              width="60"
-              style={{ borderRadius: "50%" }}
-            />
-
-            <h4>{loggedUser.username || "User"}</h4>
-
-          </div>
-        )}
-
-        <button
-          style={{ marginBottom: "20px" }}
-          onClick={() => navigate("/dashboard")}
-        >
+        <button className="dashboard-btn" onClick={() => navigate("/dashboard")}>
           Go To Dashboard
         </button>
 
-        {users
-          .filter(user => user._id !== loggedUser?._id)
-          .map(user => (
+        {/* ✅ USERS GRID (COLUMN STYLE) */}
+<div className="bond-grid">
+  {users
+    .filter(user => user._id !== loggedUser?._id)
+    .map(user => (
 
-            <div key={user._id} className="user-card">
+      <div key={user._id} className="user-card">
 
-              <img
-                src={
-                  user.profilePic
-                    ? `${API_URL}/uploads/${user.profilePic}`
-                    : "/default-avatar.png"
-                }
-                alt="profile"
-                width="60"
-              />
+        <img
+          src={
+            user.profilePic
+              ? `${API_URL}/uploads/${user.profilePic}`
+              : "/default-avatar.png"
+          }
+          alt="profile"
+          className="user-img"
+        />
 
-              <span>{user.username || "No Username"}</span>
+        <p>{user.username || "No Username"}</p>
 
-              {bondedUsers.some(b => b.userId === user._id) ? (
-                <button
-                  style={{ backgroundColor: "red", color: "white" }}
-                  onClick={() => handleUnfollow(user._id)}
-                >
-                  Unfollow
-                </button>
-              ) : (
-                <button
-                  style={{ backgroundColor: "green", color: "white" }}
-                  onClick={() => handleFollowClick(user._id)}
-                >
-                  Follow
-                </button>
-              )}
+        {bondedUsers.some(b => b.userId === user._id) ? (
+          <button
+            className="unfollow-btn"
+            onClick={() => handleUnfollow(user._id)}
+          >
+            Unfollow
+          </button>
+        ) : (
+          <button
+            className="follow-btn"
+            onClick={() => handleFollowClick(user._id)}
+          >
+            Follow
+          </button>
+        )}
 
-            </div>
-
-          ))}
+      </div>
+    ))}
+</div>
       </div>
 
+      {/* POPUP */}
       {showPopup && (
         <div className="popup">
           <div className="popup-box">
-
             <h3>Select Bond Type</h3>
 
-            <button onClick={() => handleBondSelect("friend")}>
-              Friend
-            </button>
-
-            <button onClick={() => handleBondSelect("couple")}>
-              Couple
-            </button>
-
-            <button onClick={() => handleBondSelect("charity")}>
-              Charity
-            </button>
-
-            <button onClick={() => setShowPopup(false)}>
-              Cancel
-            </button>
-
+            <button onClick={() => handleBondSelect("friend")}>Friend</button>
+            <button onClick={() => handleBondSelect("couple")}>Couple</button>
+            <button onClick={() => handleBondSelect("charity")}>Charity</button>
+            <button onClick={() => setShowPopup(false)}>Cancel</button>
           </div>
         </div>
       )}

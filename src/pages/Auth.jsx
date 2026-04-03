@@ -1,14 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function Auth() {
-  const [mode, setMode] = useState("login"); // login | signup
+  const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [savedEmails, setSavedEmails] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [showForgot, setShowForgot] = useState(false);
@@ -17,12 +16,11 @@ export default function Auth() {
   const navigate = useNavigate();
 
   /* =========================
-     LOAD SAVED EMAILS
+     EMAIL VALIDATION (GMAIL ONLY)
   ========================= */
-  useEffect(() => {
-    const storedEmails = JSON.parse(localStorage.getItem("savedUsers")) || [];
-    setSavedEmails(storedEmails);
-  }, []);
+  const isGmail = (email) => {
+    return email.endsWith("@gmail.com");
+  };
 
   /* =========================
      LOGIN
@@ -63,11 +61,17 @@ export default function Auth() {
   };
 
   /* =========================
-     SIGNUP
+     SIGNUP (GMAIL VALIDATION)
   ========================= */
   const signup = async () => {
     if (!email || !password) {
       alert("Please enter email and password");
+      return;
+    }
+
+    // ✅ Only Gmail allowed
+    if (!isGmail(email)) {
+      alert("Only Gmail accounts are allowed (@gmail.com)");
       return;
     }
 
@@ -88,14 +92,6 @@ export default function Auth() {
       }
 
       localStorage.setItem("token", data.token);
-
-      const users = JSON.parse(localStorage.getItem("savedUsers")) || [];
-      if (!users.includes(email)) {
-        users.push(email);
-        localStorage.setItem("savedUsers", JSON.stringify(users));
-      }
-
-      setSavedEmails(users);
 
       navigate("/create-profile");
     } catch (err) {
@@ -145,13 +141,10 @@ export default function Auth() {
       <div className="auth-shell">
         <div className="card auth-card">
           <div className="card-header">
-            <div>
-              <h2 className="title" style={{ margin: 0 }}>Welcome to Bondify</h2>
-              <p className="subtle">A clean, secure wallet-style points experience.</p>
-            </div>
+            <h2 className="title" style={{ margin: 0 }}>Welcome to Bondify</h2>
           </div>
 
-          <div className="tabs" aria-label="Auth mode">
+          <div className="tabs">
             <button
               className={`tab ${mode === "login" ? "tab-active" : ""}`}
               onClick={() => {
@@ -162,6 +155,7 @@ export default function Auth() {
             >
               Login
             </button>
+
             <button
               className={`tab ${mode === "signup" ? "tab-active" : ""}`}
               onClick={() => {
@@ -174,22 +168,16 @@ export default function Auth() {
             </button>
           </div>
 
+          {/* ❌ Removed datalist (saved emails) */}
           <div className="field">
             <div className="label">Email</div>
             <input
               className="input"
-              list="emails"
               type="email"
-              placeholder="you@company.com"
+              placeholder="example@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
             />
-            <datalist id="emails">
-              {savedEmails.map((e, i) => (
-                <option key={i} value={e} />
-              ))}
-            </datalist>
           </div>
 
           {!showForgot && (
@@ -202,7 +190,6 @@ export default function Auth() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
                 />
               </div>
 
@@ -224,7 +211,6 @@ export default function Auth() {
                     setPassword("");
                   }}
                   type="button"
-                  disabled={loading}
                 >
                   Clear
                 </button>
@@ -260,16 +246,13 @@ export default function Auth() {
                 Reset password
               </button>
 
-              <button className="btn btn-ghost" onClick={() => setShowForgot(false)} type="button">
+              <button className="btn btn-ghost" onClick={() => setShowForgot(false)}>
                 Back
               </button>
             </>
           )}
 
           <div className="divider" />
-          <p className="hint">
-            Tip: your last used emails appear in the picker for faster sign-in.
-          </p>
         </div>
       </div>
     </>
