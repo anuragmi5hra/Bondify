@@ -6,7 +6,7 @@ import User from "../models/User.js";
 const router = express.Router();
 
 /* ==============================
-   SIGNUP
+   SIGNUP (🔥 WITH RESTORE LOGIC)
 ============================== */
 router.post("/signup", async (req, res) => {
   try {
@@ -17,18 +17,47 @@ router.post("/signup", async (req, res) => {
     }
 
     const existingUser = await User.findOne({ email });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    /* 🔥 RESTORE DELETED ACCOUNT */
     if (existingUser) {
+
+      // ✅ If deleted → restore
+      if (existingUser.isDeleted) {
+
+        existingUser.isDeleted = false;
+        existingUser.password = hashedPassword;
+
+        await existingUser.save();
+
+        const token = jwt.sign(
+          { id: existingUser._id },
+          process.env.JWT_SECRET,
+          { expiresIn: "7d" }
+        );
+
+        return res.json({
+          message: "Welcome back! 🎉",
+          token,
+          user: {
+            id: existingUser._id,
+            email: existingUser.email,
+          },
+        });
+      }
+
+      // ❌ If already active
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    /* ✅ NORMAL SIGNUP */
 
     const newUser = await User.create({
       email,
       password: hashedPassword,
     });
 
-    // GENERATE TOKEN
     const token = jwt.sign(
       { id: newUser._id },
       process.env.JWT_SECRET,
@@ -65,6 +94,13 @@ router.post("/login", async (req, res) => {
 
     if (!user) {
       return res.status(400).json({ message: "User not found" });
+    }
+
+    // 🔥 BLOCK LOGIN IF DELETED
+    if (user.isDeleted) {
+      return res.status(400).json({
+        message: "Account deleted. Please signup again to restore."
+      });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);

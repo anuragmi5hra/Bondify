@@ -143,8 +143,13 @@ export default function Charity() {
                               {kind === "sent" ? "Sent" : "Received"}
                             </span>
                           </td>
-                          <td className="muted">{t.sender?.email || "—"}</td>
-                          <td className="muted">{t.receiver?.email || "—"}</td>
+                          <td className="muted">
+  {t.sender?.isDeleted ? "User Suspended" : t.sender?.email || "—"}
+</td>
+
+<td className="muted">
+  {t.receiver?.isDeleted ? "User Suspended" : t.receiver?.email || "—"}
+</td>
                           <td style={{ fontWeight: 800, color: kind === "sent" ? "rgba(180, 28, 28, 0.98)" : "rgba(12, 110, 70, 0.98)" }}>
                             {kind === "sent" ? "-" : "+"}{t.points}
                           </td>

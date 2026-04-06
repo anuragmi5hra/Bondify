@@ -19,7 +19,7 @@ export default function Navbar({ profile }) {
           <img src={logo} alt="Bondify Logo" className="navbar-logo" />
           <div className="brand-name">
             <strong>Bondify</strong>
-            <span>Fintech-style points wallet</span>
+            {/* <span>Fintech-style points wallet</span> */}
           </div>
         </Link>
 

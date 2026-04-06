@@ -105,7 +105,7 @@ export default function Dashboard() {
             <div className="card-header">
               <div>
                 <h2 className="title">Dashboard</h2>
-                <p className="subtle">Your points, bonds, and recent activity — at a glance.</p>
+                <p className="subtle">Your points, bonds, and recent activity</p>
               </div>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
                 <button className="btn btn-secondary" onClick={() => navigate("/create-bonds")}>
@@ -124,7 +124,7 @@ export default function Dashboard() {
                 <div className="card-header" style={{ marginBottom: 10 }}>
                   <div>
                     <h3 className="title" style={{ fontSize: 16 }}>Your profile</h3>
-                    <p className="subtle">Quick identity + wallet status</p>
+                    {/* <p className="subtle">Quick identity + wallet status</p> */}
                   </div>
                   <button className="btn btn-ghost" onClick={() => navigate("/edit-profile")}>
                     Manage

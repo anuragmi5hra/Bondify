@@ -1,7 +1,7 @@
 import express from "express";
 import User from "../models/User.js";
 import authMiddleware from "../middleware/authMiddleware.js";
-import BondTransaction from "../models/BondTransaction.js";   // ⭐ NEW IMPORT
+import BondTransaction from "../models/BondTransaction.js";
 
 const router = express.Router();
 
@@ -17,6 +17,11 @@ router.get("/daily", authMiddleware, async (req, res) => {
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // 🔥 (Optional safety)
+    if (user.isDeleted) {
+      return res.status(400).json({ message: "Account is suspended" });
     }
 
     const today = new Date();
@@ -66,6 +71,19 @@ router.post("/send", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // 🔥 IMPORTANT CHECKS (ADD THIS)
+    if (sender.isDeleted) {
+      return res.status(400).json({
+        message: "Your account is suspended"
+      });
+    }
+
+    if (receiver.isDeleted) {
+      return res.status(400).json({
+        message: "User is suspended"
+      });
+    }
+
     const amount = points || 1;
 
     if (sender.points < amount) {
@@ -78,7 +96,7 @@ router.post("/send", authMiddleware, async (req, res) => {
     await sender.save();
     await receiver.save();
 
-    /* ⭐ SAVE TRANSACTION (NEW) */
+    /* ⭐ SAVE TRANSACTION */
 
     await BondTransaction.create({
       sender: sender._id,

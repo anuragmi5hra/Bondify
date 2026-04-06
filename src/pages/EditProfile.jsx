@@ -144,6 +144,39 @@ export default function EditProfile() {
     }
   };
 
+  /* =========================
+   DELETE ACCOUNT
+========================= */
+const handleDeleteAccount = async () => {
+
+  const confirmDelete = window.confirm("Are you sure you want to delete your account?");
+
+  if (!confirmDelete) return;
+
+  try {
+
+    const res = await fetch(`${API_URL}/api/profile/delete`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    });
+
+    const data = await res.json();
+
+    alert(data.message);
+
+    if (res.ok) {
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Error deleting account");
+  }
+};
+
   return (
     <>
       <Navbar profile={profile} />
@@ -154,6 +187,7 @@ export default function EditProfile() {
             <div className="card-header">
               <div>
                 <h2 className="title">Profile</h2>
+                 
                 <p className="subtle">Your identity, wallet stats, and account settings.</p>
               </div>
               <div className="pill" title="Account email">
@@ -270,6 +304,24 @@ export default function EditProfile() {
                   <button className="btn btn-primary" type="submit">
                     Save changes
                   </button>
+
+                  <div style={{ textAlign: "right" }}>
+  <button
+    style={{
+      background: "#e53935",
+      color: "white",
+      border: "none",
+      padding: "10px 16px",
+      borderRadius: "8px",
+      cursor: "pointer",
+      fontWeight: "600"
+    }}
+    onClick={handleDeleteAccount}
+  >
+    Delete Account
+  </button>
+</div>
+
                   <button
                     className="btn btn-ghost"
                     type="button"

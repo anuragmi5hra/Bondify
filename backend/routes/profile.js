@@ -98,13 +98,27 @@ router.get("/me", authMiddleware, async (req, res) => {
         path: "bonds",
         populate: {
           path: "user",
-          select: "username profilePic"
+          select: "username profilePic isDeleted"
         }
       });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    // 🔥 Replace deleted users name
+    user.bonds = user.bonds.map(b => {
+      if (b.user?.isDeleted) {
+        return {
+          ...b._doc,
+          user: {
+            username: "Suspended User",
+            profilePic: null
+          }
+        };
+      }
+      return b;
+    });
 
     res.json(user);
 
@@ -115,15 +129,16 @@ router.get("/me", authMiddleware, async (req, res) => {
 });
 
 /* ==============================
-   GET ALL USERS
+   GET ALL USERS (🔥 FIXED)
 ============================== */
 
 router.get("/all", authMiddleware, async (req, res) => {
   try {
 
     const users = await User.find({
-      _id: { $ne: req.user.id },
-      username: { $exists: true, $ne: "" }
+      _id: { $ne: req.user.id },   // don't show self
+      isDeleted: false,            // hide deleted users ✅
+      username: { $exists: true, $ne: "" } // only completed profiles
     })
       .select("username profilePic email")
       .lean();
@@ -143,7 +158,7 @@ router.get("/all", authMiddleware, async (req, res) => {
 });
 
 /* ==============================
-   FOLLOW USER
+   FOLLOW USER (🔥 BLOCK DELETED)
 ============================== */
 
 router.post("/follow/:id", authMiddleware, async (req, res) => {
@@ -165,6 +180,11 @@ router.post("/follow/:id", authMiddleware, async (req, res) => {
 
     if (!currentUser || !targetUser) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    // 🔥 Prevent follow deleted user
+    if (targetUser.isDeleted) {
+      return res.status(400).json({ message: "User is suspended" });
     }
 
     const bond = await Bond.create({
@@ -223,7 +243,7 @@ router.delete("/unfollow/:id", authMiddleware, async (req, res) => {
 });
 
 /* ==============================
-   GET BONDS BY TYPE
+   GET BONDS BY TYPE (🔥 FIXED)
 ============================== */
 
 router.get("/bonds", authMiddleware, async (req, res) => {
@@ -236,18 +256,59 @@ router.get("/bonds", authMiddleware, async (req, res) => {
         path: "bonds",
         populate: {
           path: "user",
-          select: "username profilePic"
+          select: "username profilePic isDeleted"
         }
       });
 
-    const filtered = user.bonds.filter(
+    let filtered = user.bonds.filter(
       (b) => b.bondType === type
     );
+
+    // 🔥 Replace deleted users
+    filtered = filtered.map(b => {
+      if (b.user?.isDeleted) {
+        return {
+          ...b._doc,
+          user: {
+            username: "Suspended User",
+            profilePic: null
+          }
+        };
+      }
+      return b;
+    });
 
     res.json(filtered);
 
   } catch (err) {
     console.log("BOND FETCH ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* ==============================
+   DELETE ACCOUNT (SOFT DELETE)
+============================== */
+
+router.delete("/delete", authMiddleware, async (req, res) => {
+  try {
+
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 🔥 Soft delete
+    user.isDeleted = true;
+    await user.save();
+
+    res.json({
+      message: "Account deleted successfully"
+    });
+
+  } catch (err) {
+    console.log("DELETE ACCOUNT ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 });

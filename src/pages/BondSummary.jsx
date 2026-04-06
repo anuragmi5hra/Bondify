@@ -81,7 +81,9 @@ export default function BondSummary() {
                 width="60"
               />
 
-              <span>{bond.user?.username}</span>
+              <span>
+              {bond.user?.isDeleted ? "User Suspended" : bond.user?.username}
+              </span>
 
             </div>
           ))

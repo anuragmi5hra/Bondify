@@ -180,7 +180,9 @@ export default function CreateBonds() {
         {/* ✅ USERS GRID (COLUMN STYLE) */}
 <div className="bond-grid">
   {users
-    .filter(user => user._id !== loggedUser?._id)
+  .filter(user => 
+  user._id !== loggedUser?._id && !user.isDeleted
+)
     .map(user => (
 
       <div key={user._id} className="user-card">

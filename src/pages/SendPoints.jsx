@@ -104,21 +104,25 @@ export default function SendPoints() {
                 style={{ borderRadius: "50%" }}
               />
 
-              <span>{bond.user?.username}</span>
+              <span>
+              {bond.user?.isDeleted ? "User Suspended" : bond.user?.username}
+             </span>
 
               <button
-                style={{
-                  background: "#2f93c6",
-                  color: "white",
-                  border: "none",
-                  padding: "6px 14px",
-                  borderRadius: "6px",
-                  marginLeft: "10px"
-                }}
-                onClick={() => handleSendPoints(bond.user?._id)}
-              >
-                Send
-              </button>
+  disabled={bond.user?.isDeleted}
+  style={{
+    background: bond.user?.isDeleted ? "gray" : "#2f93c6",
+    color: "white",
+    border: "none",
+    padding: "6px 14px",
+    borderRadius: "6px",
+    marginLeft: "10px",
+    cursor: bond.user?.isDeleted ? "not-allowed" : "pointer"
+  }}
+  onClick={() => handleSendPoints(bond.user?._id)}
+>
+  {bond.user?.isDeleted ? "Unavailable" : "Send"}
+</button>
 
             </div>
           ))

@@ -78,7 +78,7 @@ const userSchema = new mongoose.Schema(
 
     points: {
       type: Number,
-      default: 10 // user starts with 10 points
+      default: 10
     },
 
     totalReceivedPoints: {
@@ -88,6 +88,15 @@ const userSchema = new mongoose.Schema(
 
     lastDailyReward: {
       type: Date
+    },
+
+    /* ==============================
+       ❌ SOFT DELETE (IMPORTANT)
+    ============================== */
+
+    isDeleted: {
+      type: Boolean,
+      default: false
     }
 
   },
