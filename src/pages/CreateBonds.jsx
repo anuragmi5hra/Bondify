@@ -13,6 +13,10 @@ export default function CreateBonds() {
   const [showPopup, setShowPopup] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // ✅ NEW STATES (PROFILE POPUP)
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const [showProfilePopup, setShowProfilePopup] = useState(false);
+
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -150,6 +154,27 @@ export default function CreateBonds() {
     }
   };
 
+  /* =========================
+   PROFILE POPUP HANDLER
+========================= */
+const handleUserClick = async (user) => {
+  try {
+    setShowProfilePopup(true);       // open popup first
+    setSelectedProfile(null);        // reset (for loading state)
+
+    const res = await fetch(`${API_URL}/api/profile/user/${user._id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+
+    setSelectedProfile(data);        // ✅ full profile आता है
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+
   if (loading) return <h3 style={{ textAlign: "center" }}>Loading...</h3>;
 
   return (
@@ -159,80 +184,128 @@ export default function CreateBonds() {
       <div className="bond-container">
         <h2>Create Your Bonds</h2>
 
-        {/* Logged User */}
-        {/* <div className="logged-user">
+        <button className="dashboard-btn" onClick={() => navigate("/dashboard")}>
+          Go To Dashboard
+        </button>
+
+        {/* USERS GRID */}
+        <div className="bond-grid">
+          {users
+            .filter(user =>
+              user._id !== loggedUser?._id && !user.isDeleted
+            )
+            .map(user => (
+
+              <div
+  key={user._id}
+  className="user-card"
+  onClick={() => handleUserClick(user)}
+  style={{ cursor: "pointer" }}
+>
+  {/* ✅ PROFILE IMAGE */}
   <img
     src={
-      loggedUser.profilePic
-        ? `${API_URL}/uploads/${loggedUser.profilePic}`
+      user.profilePic
+        ? `${API_URL}/uploads/${user.profilePic}`
         : "/default-avatar.png"
     }
     alt="profile"
     className="user-img"
   />
-  <h4>{loggedUser.username || "User"}</h4>
-</div> */}
 
-        <button className="dashboard-btn" onClick={() => navigate("/dashboard")}>
-          Go To Dashboard
-        </button>
+  <p>{user.username || "No Username"}</p>
 
-        {/* ✅ USERS GRID (COLUMN STYLE) */}
-<div className="bond-grid">
-  {users
-  .filter(user => 
-  user._id !== loggedUser?._id && !user.isDeleted
-)
-    .map(user => (
+                {bondedUsers.some(b => b.userId === user._id) ? (
+                  <button
+                    className="unfollow-btn"
+                    onClick={(e) => {
+                      e.stopPropagation(); // ✅ prevent popup
+                      handleUnfollow(user._id);
+                    }}
+                  >
+                    Unfollow
+                  </button>
+                ) : (
+                  <button
+                    className="follow-btn"
+                    onClick={(e) => {
+                      e.stopPropagation(); // ✅ prevent popup
+                      handleFollowClick(user._id);
+                    }}
+                  >
+                    Follow
+                  </button>
+                )}
 
-      <div key={user._id} className="user-card">
-
-        <img
-          src={
-            user.profilePic
-              ? `${API_URL}/uploads/${user.profilePic}`
-              : "/default-avatar.png"
-          }
-          alt="profile"
-          className="user-img"
-        />
-
-        <p>{user.username || "No Username"}</p>
-
-        {bondedUsers.some(b => b.userId === user._id) ? (
-          <button
-            className="unfollow-btn"
-            onClick={() => handleUnfollow(user._id)}
-          >
-            Unfollow
-          </button>
-        ) : (
-          <button
-            className="follow-btn"
-            onClick={() => handleFollowClick(user._id)}
-          >
-            Follow
-          </button>
-        )}
-
-      </div>
-    ))}
-</div>
+              </div>
+            ))}
+        </div>
       </div>
 
-      {/* POPUP */}
+      {/* FOLLOW POPUP */}
       {showPopup && (
-        <div className="popup">
+        <div className="popup-overlay">
           <div className="popup-box">
             <h3>Select Bond Type</h3>
 
-            <button onClick={() => handleBondSelect("friend")}>Friend</button>
-            <button onClick={() => handleBondSelect("couple")}>Couple</button>
-            <button onClick={() => handleBondSelect("charity")}>Charity</button>
-            <button onClick={() => setShowPopup(false)}>Cancel</button>
+            <div className="popup-actions">
+              <button onClick={() => handleBondSelect("friend")}>Friend</button>
+              <button onClick={() => handleBondSelect("couple")}>Couple</button>
+              <button onClick={() => handleBondSelect("charity")}>Charity</button>
+            </div>
+
+            <button className="cancel-btn" onClick={() => setShowPopup(false)}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
+
+      {/* ✅ PROFILE POPUP */}
+{showProfilePopup && (
+  <div className="popup-overlay" onClick={() => setShowProfilePopup(false)}>
+    <div className="profile-popup" onClick={(e) => e.stopPropagation()}>
+
+      {!selectedProfile ? (
+        <p>Loading...</p>   // ✅ loading fix
+      ) : (
+        <>
+          <img
+            src={
+              selectedProfile.profilePic
+                ? `${API_URL}/uploads/${selectedProfile.profilePic}`
+                : "/default-avatar.png"
+            }
+            alt="profile"
+            className="popup-img"
+          />
+
+          <h2>{selectedProfile.username}</h2>
+
+          <p>
+            <strong>Bio:</strong>{" "}
+            {selectedProfile.bio || "No bio available"}
+          </p>
+
+          <p>
+            <strong>DOB:</strong>{" "}
+            {selectedProfile.dob
+              ? new Date(selectedProfile.dob).toLocaleDateString()
+              : "Not provided"}
+          </p>
+
+          <button
+            className="btn btn-secondary"
+            onClick={() => setShowProfilePopup(false)}
+          >
+            Close
+          </button>
+        </>
+      )}
+
+    </div>
+  </div>
+)}
     </>
   );
 }

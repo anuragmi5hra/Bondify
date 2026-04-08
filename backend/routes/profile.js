@@ -140,7 +140,7 @@ router.get("/all", authMiddleware, async (req, res) => {
       isDeleted: false,            // hide deleted users ✅
       username: { $exists: true, $ne: "" } // only completed profiles
     })
-      .select("username profilePic email")
+      .select("username profilePic bio dob email")
       .lean();
 
     const formattedUsers = users.map(user => ({
@@ -282,6 +282,27 @@ router.get("/bonds", authMiddleware, async (req, res) => {
 
   } catch (err) {
     console.log("BOND FETCH ERROR:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/* ==============================
+   GET SINGLE USER (FULL PROFILE)
+============================== */
+router.get("/user/:id", authMiddleware, async (req, res) => {
+  try {
+
+    const user = await User.findById(req.params.id)
+      .select("username bio dob profilePic");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(user);
+
+  } catch (err) {
+    console.log("GET USER ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
