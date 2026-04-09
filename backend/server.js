@@ -11,14 +11,21 @@ import charityRoutes from "./routes/charity.js";
 
 dotenv.config();
 
-const app = express();
-
-/* ==============================
-   MIDDLEWARE
-============================== */
+const allowedOrigins = [
+  "https://bondify-izpclvy9b-anuragmi5hras-projects.vercel.app",
+  "https://bondify-aqd90zqme-anuragmi5hras-projects.vercel.app"
+];
 
 app.use(cors({
- origin: "https://bondify-aqd90zqme-anuragmi5hras-projects.vercel.app",
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // Postman / mobile apps
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
 
