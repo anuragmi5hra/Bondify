@@ -11,6 +11,8 @@ import charityRoutes from "./routes/charity.js";
 
 dotenv.config();
 
+const app = express();
+
 app.use(cors({
   origin: function (origin, callback) {
     // allow requests with no origin (Postman etc.)
