@@ -11,21 +11,22 @@ import charityRoutes from "./routes/charity.js";
 
 dotenv.config();
 
-const allowedOrigins = [
-  "https://bondify-izpclvy9b-anuragmi5hras-projects.vercel.app",
-  "https://bondify-aqd90zqme-anuragmi5hras-projects.vercel.app",
-  "https://bondify-seven.vercel.app"
-];
-
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Postman / mobile apps
+    // allow requests with no origin (Postman etc.)
+    if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+    // allow all vercel domains
+    if (origin.includes("vercel.app")) {
+      return callback(null, true);
     }
+
+    // allow localhost (optional)
+    if (origin.includes("localhost")) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true
 }));
