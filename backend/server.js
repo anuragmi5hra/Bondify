@@ -13,7 +13,8 @@ dotenv.config();
 
 const allowedOrigins = [
   "https://bondify-izpclvy9b-anuragmi5hras-projects.vercel.app",
-  "https://bondify-aqd90zqme-anuragmi5hras-projects.vercel.app"
+  "https://bondify-aqd90zqme-anuragmi5hras-projects.vercel.app",
+  "https://bondify-seven.vercel.app"
 ];
 
 app.use(cors({
